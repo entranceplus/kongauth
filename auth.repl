@@ -1,0 +1,15 @@
+(require '[cognitect.transcriptor :as xr :refer (check!)]
+         '[clj-http.client :as client])
+
+;; hello world route
+(= "Hello world!!" (-> "http://localhost:8081"
+                      client/get
+                      :body))
+
+;; auth route
+(-> "http://localhost:8081/auth"
+    (client/post {:form-params {:username "akash"
+                                :password "okay"}
+                  :as :json
+                  :content-type :json})
+    :body)

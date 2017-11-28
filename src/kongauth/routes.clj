@@ -1,9 +1,84 @@
 (ns kongauth.routes
   (:require
+   [buddy.auth.backends :as backends]
+   [buddy.sign.jwt :as jwt]
+   [crypto.password.pbkdf2 :as password]
    [compojure.route :as route]
+   [clj-http.client :as client]
    [compojure.core :refer [routes GET POST ANY]]
-   [ring.util.response :refer [response content-type charset]]))
+   [kongauth.db.core :as db]
+   [ring.util.http-response :as response]
+   [kongauth.db.util :as dbutil]
+   [kongauth.util :as util]))
 
-(defn auth-routes [e]
+
+(def secret "a-very-secret-string")
+
+(def backend (backends/jws {:secret secret}))
+
+(defn jwt-sign [claims]
+  (jwt/sign claims secret {:alg :hs512}))
+
+;; moving forward we can expose these (following comments)  params that we
+;; are reading from
+;; config files to be driven by sth else.. that process will be
+;; the steps required to add the auth to a new project. I think config
+;; files should work
+
+;; read this from a config file
+(def oauth-config {:client_id "JOERouFGerPXCvAtCOWvdg1DIhzRhUum"
+                   :client_secret "T94S0O6RII3dmfpXA5MYRjOeBOIrsWOY"
+                   :grant_type "password"
+                   :scope "username"
+                   :provision_key "function"})
+
+;; todo
+;; pick the url from config files
+;; in the request for token, the client will then also
+;; have to send their app name and we can select that based on
+;; what we have from config
+(defn get-token
+  "get token from kong"
+  [{:keys [id username password]}]
+  (-> "https://links.entranceplus.in/oauth2/token"
+      (client/post {:form-params (merge oauth-config
+                                        {:authenticated_userid id
+                                         :username username
+                                         :password password})
+                    :as :json
+                    :content-type :json})
+      :body))
+
+(defn ensure-user
+  "if username and password combo is present then get user,
+  if not then create user"
+  [db {:keys [username password] :as user}]
+  (if-let  [{:keys [pass id]} (->> {:username username}
+                                   (db/get-users db)
+                                   seq
+                                   first)]
+    (when (password/check password pass)
+        (merge user {:id id}))
+    (let [id  (dbutil/uuid)
+          user {:id id
+                :username username
+                :pass (password/encrypt password)}]
+      (db/create-user db user)
+      user)))
+
+(defn handle-auth
+  "issue token for this user"
+  [db user]
+  (some->> user
+           (ensure-user db)
+           get-token))
+
+(defn auth-routes [{db :db}]
   (routes
-   (GET "/" [] "Hello world")))
+   (GET "/" [] "Hello world!!")
+   (POST "/auth" {user-info :params}
+         (println "user ingo is " user-info)
+        (if-let [login-response (handle-auth db user-info)]
+          (util/ok-response login-response)
+          (util/send-response (response/bad-request
+                               {:reason "Incorrect credentials"}))))))
