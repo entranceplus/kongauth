@@ -3,21 +3,29 @@
 
 (def base-url "http://localhost:8081")
 
-;; hello world route
-(= "Hello world!!" (-> base-url client/get :body))
-
-;; auth route
-(defn auth []
-  (-> (str base-url "/auth")
-      (client/post {:form-params {:username "akash"
-                                  :password "okay"}
+(defn post [url data]
+  (-> (str base-url url)
+      (client/post {:form-params data
                     :as :json
                     :content-type :json})
       :body))
 
+(defn get [url]
+  (-> (str base-url url)
+      client/get
+      :body))
+
+;; hello world route
+(get "/")
+
+;; auth route
+(def auth-response (post "/auth"
+                         {:username "akash"
+                          :password "okay"}))
+
 ;; refresh token route
-(-> (str base-url "/refresh")
-    (client/post {:form-params {:refresh-token (:refresh_token (auth))}
-                  :as :json
-                  :content-type :json})
-    :body)
+(post "/refresh"
+      {:refresh-token (:refresh_token auth-response)})
+
+;; user exists route
+(get "/users/akash")

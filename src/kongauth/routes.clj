@@ -4,7 +4,7 @@
             [clj-http.client :as client]
             [compojure.core :refer [GET POST routes]]
             [crypto.password.pbkdf2 :as password]
-            [kongauth.db.core :as db]
+            [kongauth.db.core :as authdb]
             [kongauth.db.util :as dbutil]
             [kongauth.util :as util]
             [cheshire.core :as json]
@@ -64,7 +64,7 @@
   if not then create user"
   [db {:keys [username password] :as user}]
   (if-let  [{:keys [pass id]} (->> {:username username}
-                                   (db/get-users db)
+                                   (authdb/get-users db)
                                    seq
                                    first)]
     (when (password/check password pass)
@@ -73,7 +73,7 @@
           user {:id id
                 :username username
                 :pass (password/encrypt password)}]
-      (db/create-user db user)
+      (authdb/create-user db user)
       user)))
 
 (defn handle-auth
@@ -83,7 +83,8 @@
            (ensure-user db)
            get-token))
 
-
+(defn user? [db username]
+  (empty? (authdb/get-users db {:username username})))
 
 (defn auth-routes [{db :db}]
   (routes
@@ -97,4 +98,6 @@
          (util/ok-response
           (try+ (get-refresh-token refresh-token)
                 (catch [:status 400] {:keys [body]}
-                  (json/parse-string body true)))))))
+                  (json/parse-string body true)))))
+   (GET "/users/:username" [username]
+        (util/ok-response {:present (user? db username)}))))
