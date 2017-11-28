@@ -2,17 +2,22 @@
 
 FIXME: description
 
-## Installation
+## Requirements
 
-Download from http://example.com/FIXME.
+* boot should be installed https://github.com/boot-clj/boot/#install
+* postgresql should be installedd
+* provided database should exists
 
 ## Usage
+Create a profiles.edn file with values for keys {:username :password :db :http-port}
 
-FIXME: explanation
+Run migrations:
 
-Run the project directly:
+    $ boot local-migrate
 
-    $ boot run
+Run dev environment:
+
+    $ boot dev
 
 Run the project's tests (they'll fail until you edit them):
 
