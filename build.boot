@@ -25,12 +25,13 @@
                             [compojure "1.6.0"]
                             [org.postgresql/postgresql "9.4-1201-jdbc41"]
                             [ring "1.6.3"]
+                            [slingshot "0.12.2"]
                             [ring/ring-defaults "0.3.1"]
                             [ring-middleware-format "0.7.2"]
                             [com.cognitect/transcriptor "0.1.5"]
                             [ragtime "0.7.2"]
+                            [cheshire "5.8.0"]
                             [nightlight "1.9.3" :scope "test"]
-                            [mbuczko/boot-ragtime "0.2.0"]
                             [adzerk/boot-reload "0.5.2" :scope "test"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
 

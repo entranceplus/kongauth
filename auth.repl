@@ -1,15 +1,23 @@
 (require '[cognitect.transcriptor :as xr :refer (check!)]
          '[clj-http.client :as client])
 
+(def base-url "http://localhost:8081")
+
 ;; hello world route
-(= "Hello world!!" (-> "http://localhost:8081"
-                      client/get
-                      :body))
+(= "Hello world!!" (-> base-url client/get :body))
 
 ;; auth route
-(-> "http://localhost:8081/auth"
-    (client/post {:form-params {:username "akash"
-                                :password "okay"}
+(defn auth []
+  (-> (str base-url "/auth")
+      (client/post {:form-params {:username "akash"
+                                  :password "okay"}
+                    :as :json
+                    :content-type :json})
+      :body))
+
+;; refresh token route
+(-> (str base-url "/refresh")
+    (client/post {:form-params {:refresh-token (:refresh_token (auth))}
                   :as :json
                   :content-type :json})
     :body)
