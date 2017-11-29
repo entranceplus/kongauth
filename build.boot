@@ -25,6 +25,7 @@
                             [compojure "1.6.0"]
                             [org.postgresql/postgresql "9.4-1201-jdbc41"]
                             [ring "1.6.3"]
+                            [org.clojure/tools.nrepl "0.2.12"]
                             [slingshot "0.12.2"]
                             [ring/ring-defaults "0.3.1"]
                             [ring-middleware-format "0.7.2"]

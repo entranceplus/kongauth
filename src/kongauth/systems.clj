@@ -9,6 +9,7 @@
              [jetty :refer [new-jetty]]
              [endpoint :refer [new-endpoint]]
              [middleware :refer [new-middleware]]
+             [repl-server :refer [new-repl-server]]
              [postgres :refer [new-postgres-database]]
              [handler :refer [new-handler]])))
 
@@ -32,3 +33,10 @@
              [:auth :middleware])
    :web (component/using (new-jetty :port (Integer. (env :http-port)))
                          [:handler])))
+
+(defn prod-system
+  "Assembles and returns components for a production deployment"
+  []
+  (merge (dev-system)
+         (component/system-map
+          :repl-server (new-repl-server (read-string (env :repl-port))))))

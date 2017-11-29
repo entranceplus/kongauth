@@ -46,7 +46,8 @@
 
 (defn get-db-spec-from-env [& {:keys [config]}]
   (let [{:keys [dbuser db password host]} config]
-    (println "db us" config)
+    (println "config passed is " config)
+    (println "Trying environment variables" (env :dbuser))
     (merge db-spec {:user (or (env :dbuser) dbuser)
                     :dbname (or (env :db) db)
                     :password (or (env :password) password)
