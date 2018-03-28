@@ -9,7 +9,8 @@
             [kongauth.util :as util]
             [cheshire.core :as json]
             [ring.util.http-response :as response]
-            [slingshot.slingshot :refer [try+]]))
+            [slingshot.slingshot :refer [try+]])
+  (:import [kongauth.db.core Postgres]))
 
 (def secret "a-very-secret-string")
 
@@ -67,7 +68,7 @@
   if not then create user"
   [db {:keys [username password] :as user}]
   (if-let  [{:keys [pass id]} (->> {:username username}
-                                   (authdb/get-users db)
+                                   (authdb/get-users (Postgres. db))
                                    seq
                                    first)]
     (when (password/check password pass)
@@ -76,7 +77,7 @@
           user {:id id
                 :username username
                 :pass (password/encrypt password)}]
-      (authdb/create-user db user)
+      (authdb/create-user (Postgres. db) user)
       user)))
 
 (defn handle-auth
@@ -95,7 +96,7 @@
 
 
 (defn user? [db username]
-  (empty? (authdb/get-users db {:username username})))
+  (empty? (authdb/get-users (Postgres. db) {:username username})))
 
 (defn auth-routes [{db :db}]
   (routes

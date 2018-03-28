@@ -27,13 +27,13 @@
 
 (defn system-config [config]
   [:db (new-postgres-database (get-db-spec-from-env :config config))
-   ; :user-db (konserve/new-konserve :type :filestore
-   ;                                 :path (config :db-path)
-   ;                                 :serializer (m/fressian-serializer))
-   ; :user-store (component/using
-   ;               (kampbell/new-kampbell :equality-specs #{:domain.utils/created-at}
-   ;                                      :entities #{"users"})
-   ;               [:user-db])
+   :user-db (konserve/new-konserve :type :filestore
+                                   :path (config :db-path)
+                                   :serializer (m/fressian-serializer))
+   :user-store (component/using
+                 (kampbell/new-kampbell :equality-specs #{:domain.utils/created-at}
+                                        :entities #{"users"})
+                 [:user-db])
    :auth (component/using
           (new-endpoint auth-routes)
           [:db])
@@ -45,7 +45,6 @@
              [:auth :middleware])
    :web (component/using (new-immutant-web :port (system/get-port config))
                          [:handler])])
-
 
 (defn dev-system []
   (system/gen-system system-config))
