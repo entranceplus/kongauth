@@ -3,19 +3,22 @@
 
 (set-env! :resource-paths #{"resources" "src"}
           :source-paths   #{"test"}
-          :dependencies   '[[org.clojure/clojure "1.9.0-RC1"]
-                            [org.danielsz/system "0.4.1"]
-                            [clj-time "0.14.0"]
+          :checkouts '[[snow "0.1.0-SNAPSHOT"]]
+          :dependencies   '[[org.danielsz/system "0.4.2-SNAPSHOT"]
+                            [clj-time "0.14.2"]
                             [cljs-ajax "0.7.2"]
                             [environ "1.1.0"]
                             [boot-environ "1.1.0"]
+                            [venantius/pyro "0.1.2"]
                             [crypto-password "0.2.0"]
                             [ring/ring-jetty-adapter "1.6.2"]
                             [org.clojure/java.jdbc "0.7.3"]
                             [org.clojure/tools.cli "0.3.5"]
                             [orchestra "2017.08.13"]
+                            [org.immutant/immutant "2.1.9"]
                             [expound "0.3.0"]
                             [conman "0.7.4"]
+                            [com.cognitect/transcriptor "0.1.5"]
                             [honeysql "0.9.1"]
                             [phrase "0.1-alpha1"]
                             [org.clojure/tools.logging "0.4.0"]
@@ -25,13 +28,18 @@
                             [compojure "1.6.0"]
                             [org.postgresql/postgresql "9.4-1201-jdbc41"]
                             [ring "1.6.3"]
+                            [org.danielsz/maarschalk "0.1.2" :scope "test"]
                             [org.clojure/tools.nrepl "0.2.12"]
                             [slingshot "0.12.2"]
                             [ring/ring-defaults "0.3.1"]
                             [ring-middleware-format "0.7.2"]
                             [com.cognitect/transcriptor "0.1.5"]
                             [ragtime "0.7.2"]
+                            [org.danielsz/kampbell "0.1.5"]
                             [cheshire "5.8.0"]
+                            [io.replikativ/konserve "0.4.11"]
+                            [adzerk/boot-test "1.2.0"] ;; latest release
+                            [snow "0.1.0-SNAPSHOT"]
                             [nightlight "1.9.3" :scope "test"]
                             [adzerk/boot-reload "0.5.2" :scope "test"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
@@ -43,11 +51,15 @@
          '[environ.core :refer [env]]
          '[environ.boot :refer [environ]])
 
-
 (require '[nightlight.boot :refer [nightlight]])
 (require '[ragtime.jdbc :as jdbc]
          '[ragtime.repl :as repl])
-(require '[kongauth.db.util :as dbutil])
+
+(require '[snow.db :as dbutil])
+(require '[adzerk.boot-test :refer :all])
+
+; (require '[cognitect.transcriptor :as xr :refer (check!)])
+; (xr/run "auth.repl")
 
 (task-options!
  aot {:namespace   #{'kongauth.core}}
@@ -68,7 +80,7 @@
 
 (defn config []
   {:datastore  (jdbc/sql-database (dbutil/get-db-spec-from-env :config
-                                                               (profile)))
+                                                                (profile)))
    :migrations (jdbc/load-resources "migrations")})
 
 (deftask migrate
@@ -102,10 +114,10 @@
    (system :sys #'dev-system
            :auto true
            :files ["routes.clj" "systems.clj"])
-   (nightlight :port 4000)
    (repl :server true
-         :host "127.0.0.1"
-         :port 8989)))
+         :bind "0.0.0.0"
+         :port 7001)
+   (notify "♥♥♥♥♥♥♥♥♥")))
 
 (deftask build
   "Build the project locally as a JAR."

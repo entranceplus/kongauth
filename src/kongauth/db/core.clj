@@ -7,6 +7,6 @@
                           (values [user]))))
 
 (defn get-users [db {:keys [username]}]
-  (dbutil/query db {:select [:id :pass]
+  (dbutil/query db {:select [:id :pass :username]
                     :from [:users]
                     :where [:= :users.username username]}))

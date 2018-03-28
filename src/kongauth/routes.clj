@@ -16,6 +16,7 @@
 (def backend (backends/jws {:secret secret}))
 
 (defn jwt-sign [claims]
+  (println "Signing claims " claims)
   (jwt/sign claims secret {:alg :hs512}))
 
 ;; moving forward we can expose these (following comments)  params that we
@@ -59,6 +60,8 @@
                     :content-type :json})
       :body))
 
+;; (def db (:db system.repl/system))
+
 (defn ensure-user
   "if username and password combo is present then get user,
   if not then create user"
@@ -81,17 +84,25 @@
   [db user]
   (some->> user
            (ensure-user db)
-           get-token))
+           jwt-sign))
+
+; (def user {:id "abc"
+;            :username "shakdwipeea"
+;            :password "hello"})
+;
+; (handle-auth (:db system.repl/system) user)
+;
+
 
 (defn user? [db username]
   (empty? (authdb/get-users db {:username username})))
 
 (defn auth-routes [{db :db}]
   (routes
-   (GET "/" [] "Hello world!!")
+   (GET "/" [] (util/ok-response {:msg "Move ahead, you shall!!"}))
    (POST "/auth" {user-info :params}
-        (if-let [login-response (handle-auth db user-info)]
-          (util/ok-response login-response)
+        (if-let [token (handle-auth db user-info)]
+          (util/ok-response {:token token})
           (util/send-response (response/bad-request
                                {:reason "Incorrect credentials"}))))
    (POST "/refresh" {{refresh-token :refresh-token} :params}

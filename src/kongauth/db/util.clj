@@ -12,15 +12,15 @@
 (defn make-vec-if-not [maybe-vec]
   (if ((complement seq?) maybe-vec)
     (conj []  maybe-vec)
-(vec maybe-vec)))
+   (vec maybe-vec)))
 
 (defn query [db sqlmap]
   (jdbc/query db (-> sqlmap sql/build sql/format)))
 
 (defn execute! [db sqlmap]
   (jdbc/execute! db (let [sql (sql/format sqlmap)]
-                                (println sql)
-                                sql)))
+                         (println sql)
+                         sql)))
 
 (defn- prep-insert-data
   "if you have not set id it will"
@@ -46,11 +46,9 @@
 
 (defn get-db-spec-from-env [& {:keys [config]}]
   (let [{:keys [dbuser db password host]} config]
-    (println "config passed is " config)
+    (println "config passed is x " config)
     (println "Trying environment variables" (env :dbuser))
     (merge db-spec {:user (or (env :dbuser) dbuser)
                     :dbname (or (env :db) db)
                     :password (or (env :password) password)
-                    :host (or (env :host)
-                              host
-                              "127.0.0.1")})))
+                    :host "127.0.0.1"})))
